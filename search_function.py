@@ -54,26 +54,24 @@ def LS(train_data,test_data,k,c):
 
 def GLB(train_data,test_data,k,c):
     
+    #从train_data中找到test_data中与query在MSM距离下的kNN，c为MSM中的参数
     n_test = test_data.shape[0]
     n_train = train_data.shape[0]
-    res = np.zeros((n_test,k))   
+    res = np.zeros((n_test,k))   #记录第i个query的前k个在train_data中的最近邻
     
     for i in range(n_test):
+        #print(i)
         query = test_data[i,:]
-        lower_bound_save = np.zeros(n_train)
-        for j in range(n_train):
-            lower_bound_save[j] = glb_msm(query,train_data[j,:],c)   #lower bound computation
-        lower_bound_sort = np.argsort(lower_bound_save)
-        min_k = np.ones(k) * np.inf    
+        min_k = np.ones(k) * np.inf    #保存前k个最近邻的值
         for j in range(n_train):
             min_ = max(min_k)
-            visit = lower_bound_sort[j]
-            lower_bound = lower_bound_save[visit]
+            #首先计算lower_bound
+            lower_bound = glb_msm(query,train_data[j,:],c)
             if lower_bound<min_:
-                temp_MSM = compute_MSM(query,train_data[visit,:],c)
+                temp_MSM = compute_MSM(query,train_data[j,:],c)
                 if temp_MSM<min_:
-                    location = np.where(min_k==min_)[0][0]   
-                    res[i,location] = visit   #
+                    location = np.where(min_k==min_)[0][0]   #找到第一个min_大于temp_MSM的下标
+                    res[i,location] = j   #
                     min_k[location] = temp_MSM
     return res
 
